@@ -11,11 +11,8 @@
  * on success, return 0, else return -1
  */
 int hexdump(FILE *fp) {
-  // create a 1KB buffer
+  // create a 
   size_t const BUFFER_SIZE = 1024;
-  int const HEX_BUFFER_SIZE = 50;
-  int const ASCII_BUFFER_SIZE = 17;
-  int const ADDRESS_BUFFER_SIZE = 6;
 
   // ensure the file being read from is not empty
   if (fp == NULL) {
@@ -62,38 +59,39 @@ int hexdump(FILE *fp) {
 
     // loop over buffer and output hex dump
     for (size_t i = 0; i < readBytes; i += 16) {
-      
-
-      //initialize array buffers to 0
+      //initialize char arrays to 0
       char hexOutput[50] = {0};
       char asciiOutput[17] = {0};
-      char addressOutput[6] = {0};
+      char addressOutput[10] = {0};
 
       // store formatted address in the address array and output it to the hex file
       snprintf(addressOutput, 8, "%06x:", address);
       fprintf(out_fp, "%s ", addressOutput);
 
-      // output formatted hex values for current line
+      // output hex values for current line
       for (size_t j = 0; j < 16; j++) {
-        int curr_pos = j * 3; // current position in the buffer
+        int buf_pos = (j * 3);
         if (i + j < readBytes) {
-          if(j == 8){
-            snprintf(hexOutput + curr_pos, HEX_BUFFER_SIZE - curr_pos, "%02x  ", buffer[i + j]);
-          } 
-          else{
-            snprintf(hexOutput + curr_pos, HEX_BUFFER_SIZE - curr_pos, "%02x ", buffer[i + j]);
-          }
+          snprintf(hexOutput + buf_pos, 50 - buf_pos, "%02x ", buffer[i + j]);
         } 
+        // format empty hex positions with '--'
+        else {
+          strncpy(hexOutput + buf_pos, "-- ", 3);
+        }
+        // formatting double space between 8th and 9th hex
+        if (j == 8) {
+          strncpy(hexOutput + buf_pos, "  ", 1);
+        }
       }
 
       fprintf(out_fp, "%s", hexOutput);
-      fprintf(out_fp, " ");
 
       // output ascii values for current line
       for (size_t j = 0; j < 16; j++) {
+
         if (i + j < readBytes) {
           unsigned char c = buffer[i + j];
-             
+
           if (c >= 32 && c <= 126) {
             asciiOutput[j] = c;
           } 
