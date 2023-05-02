@@ -11,7 +11,7 @@
  * on success, return 0, else return -1
  */
 int hexdump(FILE *fp) {
-  // create a 
+  // create a 1kb buffer size
   size_t const BUFFER_SIZE = 1024;
 
   // ensure the file being read from is not empty
@@ -65,55 +65,57 @@ int hexdump(FILE *fp) {
       char addressOutput[10] = {0};
 
       // store formatted address in the address array and output it to the hex file
-      snprintf(addressOutput, 8, "%06x:", address);
+      snprintf(addressOutput, 8, "%06x: ", address);
       fprintf(out_fp, "%s ", addressOutput);
 
       // output hex values for current line
       for (size_t j = 0; j < 16; j++) {
         int buf_pos = (j * 3);
         if (i + j < readBytes) {
+          // Format the hex values to 2 characters proceeded by a space
           snprintf(hexOutput + buf_pos, 50 - buf_pos, "%02x ", buffer[i + j]);
         } 
         // format empty hex positions with '--'
         else {
           strncpy(hexOutput + buf_pos, "-- ", 3);
         }
-        // formatting double space between 8th and 9th hex
-        if (j == 8) {
-          strncpy(hexOutput + buf_pos, "  ", 1);
-        }
       }
-
-      fprintf(out_fp, "%s", hexOutput);
+      // Print formatted chars from the buffer to the output text file
+      fprintf(out_fp, "%s ", hexOutput);
 
       // output ascii values for current line
       for (size_t j = 0; j < 16; j++) {
 
         if (i + j < readBytes) {
           unsigned char c = buffer[i + j];
-
+          // Output ASCII character representation
           if (c >= 32 && c <= 126) {
             asciiOutput[j] = c;
           } 
-          else {
+          // keyboard functions ASCII 1-31
+          else if(c < 32) {
+            asciiOutput[j] = '.';
+          }
+          // Account for hex values not in ASCII table
+          else{
             asciiOutput[j] = '~';
           }
         } 
-        
-        else {
-          asciiOutput[j] = ' ';
-        }
       }
-
+      // Print new line to match formatting
       fprintf(out_fp, "%s\n", asciiOutput);
+      
+      // Increment the address by 16 to be represented in next line
       address += 16;
     }
   }
 
+  // Close buffer and free memory
   fclose(out_fp);
   free(buffer);
   return 0;
 }
+
 
 int main(int argc, char const *argv[])
 {
